@@ -176,7 +176,7 @@ public:
    * \param timeout Max time to block before returning. A zero timeout is interpreted as an infinite timeout.
    * \return True if the goal finished. False if the goal didn't finish within the allocated timeout
    */
-  bool waitForResult(const ros::Duration & timeout = ros::Duration(0, 0));
+  bool waitForResult(const ros::Duration & timeout = ros::Duration(0, 0), const ros::Duration loop_period = ros::Duration().fromSec(.1));
 
   /**
    * \brief Get the Result of the current goal
@@ -561,7 +561,7 @@ void SimpleActionClient<ActionSpec>::handleTransition(GoalHandleT gh)
 }
 
 template<class ActionSpec>
-bool SimpleActionClient<ActionSpec>::waitForResult(const ros::Duration & timeout)
+bool SimpleActionClient<ActionSpec>::waitForResult(const ros::Duration & timeout, const ros::Duration loop_period)
 {
   if (gh_.isExpired()) {
     ROS_ERROR_NAMED("actionlib",
@@ -576,9 +576,6 @@ bool SimpleActionClient<ActionSpec>::waitForResult(const ros::Duration & timeout
   ros::Time timeout_time = ros::Time::now() + timeout;
 
   boost::mutex::scoped_lock lock(done_mutex_);
-
-  // Hardcode how often we check for node.ok()
-  ros::Duration loop_period = ros::Duration().fromSec(.1);
 
   while (nh_.ok()) {
     // Determine how long we should wait
